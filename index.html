@@ -15,11 +15,12 @@
             background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
             min-height: 100vh;
             overflow-x: hidden;
+            margin: 0;
         }
         .kids-card {
             border-radius: 2.5rem;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 -4px 0 rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.15), inset 0 -4px 0 rgba(0,0,0,0.05);
         }
         .animate-float {
             animation: float 3s ease-in-out infinite;
@@ -53,7 +54,7 @@
             animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         @keyframes pop {
-            0% { transform: scale(0.5); opacity: 0; }
+            0% { transform: scale(0.6); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
         .progress-container {
@@ -69,14 +70,14 @@
             transition: width 0.5s ease-out;
         }
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: #f1f5f9;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
+          background: #cbd5e1;
           border-radius: 10px;
         }
     </style>
@@ -91,7 +92,281 @@
 }
 </script>
 </head>
-<body>
-    <div id="root"></div>
+<body class="flex items-center justify-center p-4">
+    <div id="root" class="w-full max-w-2xl min-h-[650px]"></div>
+
+    <script type="module">
+        import React, { useState, useEffect, useMemo, useCallback, useRef } from 'https://esm.sh/react@19.0.0';
+        import ReactDOM from 'https://esm.sh/react-dom@19.0.0/client';
+        import htm from 'https://esm.sh/htm';
+        import { GoogleGenAI } from 'https://esm.sh/@google/genai@1.37.0';
+
+        const html = htm.bind(React.createElement);
+
+        // --- VOCABULARY DATA (Dựa trên yêu cầu cũ) ---
+        const VOCABULARY_SETS = {
+            "Đề 1: Trường học": [
+                { english: "book 📖", vietnamese: "quyển sách" }, { english: "chair 🪑", vietnamese: "cái ghế" }, { english: "eraser 🧼", vietnamese: "cục tẩy" },
+                { english: "pen 🖊️", vietnamese: "bút mực" }, { english: "pencil ✏️", vietnamese: "bút chì" }, { english: "table 🍽️", vietnamese: "cái bàn" },
+                { english: "desk 💻", vietnamese: "bàn học" }, { english: "bookcase 📚", vietnamese: "tủ sách" }, { english: "notebook 📓", vietnamese: "quyển vở" },
+                { english: "ruler 📏", vietnamese: "cây thước" }, { english: "pupil 🧑‍🎓", vietnamese: "học sinh" }, { english: "teacher 👩‍🏫", vietnamese: "giáo viên" },
+                { english: "bag 🎒", vietnamese: "cái cặp" }, { english: "board 📋", vietnamese: "bảng" }, { english: "chalk ✍️", vietnamese: "phấn" },
+                { english: "ball ⚽", vietnamese: "quả bóng" }, { english: "bicycle 🚲", vietnamese: "xe đạp" }, { english: "camera 📷", vietnamese: "máy ảnh" },
+                { english: "car 🚗", vietnamese: "xe hơi" }, { english: "computer 💻", vietnamese: "máy tính" }, { english: "cupboard 🚪", vietnamese: "tủ chén" },
+                { english: "doll 🎎", vietnamese: "búp bê" }, { english: "kite 🪁", vietnamese: "cái diều" }, { english: "robot 🤖", vietnamese: "người máy" },
+                { english: "train 🚆", vietnamese: "tàu hỏa" }, { english: "watch ⌚", vietnamese: "đồng hồ" }
+            ],
+            "Đề 2: Gia đình & Tính cách": [
+                { english: "baby 👶", vietnamese: "em bé" }, { english: "brother 👦", vietnamese: "anh trai" }, { english: "sister 👧", vietnamese: "chị gái" },
+                { english: "cousin 🧑‍🤝‍🧑", vietnamese: "anh chị em họ" }, { english: "father 👨", vietnamese: "bố" }, { english: "mother 👩", vietnamese: "mẹ" },
+                { english: "grandfather 👴", vietnamese: "ông" }, { english: "grandmother 👵", vietnamese: "bà" }, { english: "uncle 👨‍🦰", vietnamese: "chú" },
+                { english: "aunt 👩‍🦰", vietnamese: "cô" }, { english: "young 🌱", vietnamese: "trẻ" }, { english: "old 🦳", vietnamese: "già" },
+                { english: "beautiful ✨", vietnamese: "đẹp" }, { english: "ugly 👹", vietnamese: "xấu" }, { english: "thin 🧍", vietnamese: "gầy" },
+                { english: "fat 🐘", vietnamese: "béo" }, { english: "big 🐘", vietnamese: "to" }, { english: "small 🐁", vietnamese: "nhỏ" },
+                { english: "clean 🧼", vietnamese: "sạch" }, { english: "dirty 🐷", vietnamese: "bẩn" }, { english: "sad 😢", vietnamese: "buồn" },
+                { english: "happy 😄", vietnamese: "vui" }, { english: "short 📏", vietnamese: "ngắn" }, { english: "long ↔️", vietnamese: "dài" }
+            ],
+            "Đề 3: Động vật": [
+                { english: "bear 🐻", vietnamese: "con gấu" }, { english: "bird 🐦", vietnamese: "con chim" }, { english: "cat 🐈", vietnamese: "con mèo" },
+                { english: "chicken 🐔", vietnamese: "con gà" }, { english: "crocodile 🐊", vietnamese: "cá sấu" }, { english: "hippo 🦛", vietnamese: "hà mã" },
+                { english: "dog 🐕", vietnamese: "con chó" }, { english: "dolphin 🐬", vietnamese: "cá heo" }, { english: "duck 🦆", vietnamese: "con vịt" },
+                { english: "elephant 🐘", vietnamese: "con voi" }, { english: "fish 🐠", vietnamese: "con cá" }, { english: "giraffe 🦒", vietnamese: "hươu cao cổ" },
+                { english: "horse 🐎", vietnamese: "con ngựa" }, { english: "lion 🦁", vietnamese: "sư tử" }, { english: "monkey 🐒", vietnamese: "con khỉ" },
+                { english: "mouse 🐁", vietnamese: "con chuột" }, { english: "snake 🐍", vietnamese: "con rắn" }, { english: "tiger 🐅", vietnamese: "con hổ" }
+            ],
+            "Đề 4: Cơ thể & Quần áo": [
+                { english: "arm 💪", vietnamese: "cánh tay" }, { english: "ear 👂", vietnamese: "tai" }, { english: "eye 👀", vietnamese: "mắt" },
+                { english: "face 😊", vietnamese: "khuôn mặt" }, { english: "foot 🦶", vietnamese: "bàn chân" }, { english: "feet 👣", vietnamese: "đôi chân" },
+                { english: "hair 👱", vietnamese: "tóc" }, { english: "hand ✋", vietnamese: "bàn tay" }, { english: "head 👤", vietnamese: "đầu" },
+                { english: "leg 🦵", vietnamese: "chân" }, { english: "mouth 👄", vietnamese: "miệng" }, { english: "neck 🧣", vietnamese: "cổ" },
+                { english: "nose 👃", vietnamese: "mũi" }, { english: "shoulder 🤷", vietnamese: "vai" }, { english: "tail 🐈", vietnamese: "đuôi" },
+                { english: "tooth 🦷", vietnamese: "răng" }, { english: "teeth 🦷", vietnamese: "hàm răng" }, { english: "dress 👗", vietnamese: "váy" },
+                { english: "hat 👒", vietnamese: "mũ" }, { english: "jacket 🧥", vietnamese: "áo khoác" }, { english: "shirt 👕", vietnamese: "áo sơ mi" },
+                { english: "shoes 👟", vietnamese: "giày" }, { english: "shorts 🩳", vietnamese: "quần đùi" }, { english: "skirt 👗", vietnamese: "chân váy" },
+                { english: "socks 🧦", vietnamese: "tất" }, { english: "sweater 🧥", vietnamese: "áo len" }, { english: "trousers 👖", vietnamese: "quần dài" },
+                { english: "t-shirt 👕", vietnamese: "áo phông" }
+            ],
+            "Đề 5: Giao thông & Hoạt động": [
+                { english: "bike 🚲", vietnamese: "xe đạp" }, { english: "boat 🚤", vietnamese: "thuyền" }, { english: "bus 🚌", vietnamese: "xe buýt" },
+                { english: "helicopter 🚁", vietnamese: "trực thăng" }, { english: "truck 🚚", vietnamese: "xe tải" }, { english: "motorbike 🏍️", vietnamese: "xe máy" },
+                { english: "plane ✈️", vietnamese: "máy bay" }, { english: "dance 💃", vietnamese: "nhảy" }, { english: "drive 🚗", vietnamese: "lái xe" },
+                { english: "fly 🕊️", vietnamese: "bay" }, { english: "listen 🎧", vietnamese: "nghe" }, { english: "listen to music 🎶", vietnamese: "nghe nhạc" },
+                { english: "match 🔥", vietnamese: "diêm" }, { english: "play badminton 🏸", vietnamese: "chơi cầu lông" }, { english: "play basketball 🏀", vietnamese: "chơi bóng rổ" },
+                { english: "play football ⚽", vietnamese: "chơi bóng đá" }, { english: "play tennis 🎾", vietnamese: "chơi tennis" }, { english: "play the guitar 🎸", vietnamese: "chơi guitar" },
+                { english: "play the piano 🎹", vietnamese: "chơi piano" }, { english: "point 👉", vietnamese: "chỉ" }, { english: "read a book 📖", vietnamese: "đọc sách" },
+                { english: "ride 🏇", vietnamese: "cưỡi" }, { english: "watch TV 📺", vietnamese: "xem TV" }, { english: "ride a bike 🚲", vietnamese: "đi xe đạp" },
+                { english: "say 💬", vietnamese: "nói" }, { english: "sing 🎤", vietnamese: "hát" }, { english: "sit down 🪑", vietnamese: "ngồi xuống" },
+                { english: "stand up 🧍", vietnamese: "đứng lên" }, { english: "swim 🏊", vietnamese: "bơi" }, { english: "talk 🗣️", vietnamese: "nói chuyện" },
+                { english: "walk 🚶", vietnamese: "đi bộ" }
+            ],
+            "Đề 6: Đồ gia dụng & Thực phẩm": [
+                { english: "armchair 🛋️", vietnamese: "ghế bành" }, { english: "bath 🛀", vietnamese: "bồn tắm" }, { english: "bathroom 🚽", vietnamese: "phòng tắm" },
+                { english: "bed 🛏️", vietnamese: "giường" }, { english: "bedroom 🛌", vietnamese: "phòng ngủ" }, { english: "wardrobe 🚪", vietnamese: "tủ quần áo" },
+                { english: "clock ⏰", vietnamese: "đồng hồ" }, { english: "dining room 🍽️", vietnamese: "phòng ăn" }, { english: "kitchen 🍳", vietnamese: "nhà bếp" },
+                { english: "lamp 💡", vietnamese: "đèn" }, { english: "living room 🛋️", vietnamese: "phòng khách" }, { english: "mat 🧘", vietnamese: "thảm" },
+                { english: "mirror 🪞", vietnamese: "gương" }, { english: "phone 📱", vietnamese: "điện thoại" }, { english: "picture 🖼️", vietnamese: "bức tranh" },
+                { english: "room 🏠", vietnamese: "phòng" }, { english: "sofa 🛋️", vietnamese: "ghế sofa" }, { english: "apple 🍎", vietnamese: "táo" },
+                { english: "banana 🍌", vietnamese: "chuối" }, { english: "bread 🍞", vietnamese: "bánh mì" }, { english: "grape 🍇", vietnamese: "nho" },
+                { english: "watermelon 🍉", vietnamese: "dưa hấu" }, { english: "hamburger 🍔", vietnamese: "bánh hamburger" }, { english: "cake 🎂", vietnamese: "bánh ngọt" },
+                { english: "cookie 🍪", vietnamese: "bánh quy" }, { english: "chocolate 🍫", vietnamese: "sô cô la" }, { english: "ice cream 🍦", vietnamese: "kem" },
+                { english: "orange 🍊", vietnamese: "cam" }, { english: "pineapple 🍍", vietnamese: "dứa" }, { english: "potato 🥔", vietnamese: "khoai tây" },
+                { english: "strawberry 🍓", vietnamese: "dâu tây" }, { english: "tomato 🍅", vietnamese: "cà chua" }, { english: "flower 🌸", vietnamese: "hoa" }
+            ]
+        };
+
+        // --- UTILS ---
+        const EMOJI_REGEX = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{3000}-\u{303F}]/gu;
+        const stripEmoji = (str) => str.replace(EMOJI_REGEX, '').trim();
+        const getEmoji = (str) => (str.match(EMOJI_REGEX) || []).join('');
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+        const scramblePhrase = (phrase) => {
+            let id = 0;
+            const clean = phrase.replace(/[^a-zA-Z\s-]/g, '');
+            return clean.split(' ').map(word => {
+                if (!word) return [];
+                let scrambled;
+                do { scrambled = shuffleArray(word.split('')); } while (scrambled.join('') === word && word.length > 1);
+                return scrambled.map(char => ({ char, id: id++, used: false }));
+            }).filter(w => w.length > 0);
+        };
+
+        // --- SPEECH ---
+        const speak = (text, rate = 1.0) => {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US'; u.rate = rate;
+            window.speechSynthesis.speak(u);
+        };
+
+        // --- APP COMPONENTS ---
+        const StartScreen = ({ onStart, initialName }) => {
+            const [name, setName] = useState(initialName);
+            const [topic, setTopic] = useState(Object.keys(VOCABULARY_SETS)[0]);
+            
+            return html`
+                <div class="p-8 md:p-10 flex flex-col items-center text-center justify-center h-full pop custom-scrollbar overflow-y-auto kids-card">
+                    <div class="w-24 h-24 md:w-32 md:h-32 bg-indigo-100 rounded-[2.5rem] flex items-center justify-center text-5xl md:text-7xl mb-6 animate-float shadow-inner">🧸</div>
+                    <h1 class="text-3xl md:text-4xl font-black text-indigo-600 mb-2 drop-shadow-sm">Bé Học Tiếng Anh</h1>
+                    <p class="text-slate-500 font-bold text-xs md:text-sm mb-6 max-w-md uppercase tracking-wider">Chào mừng bé đến với trò chơi ô chữ!</p>
+                    <div class="w-full max-w-sm space-y-6">
+                        <input type="text" placeholder="Tên của bé là gì nhỉ?" class="w-full px-6 py-3 bg-indigo-50/50 border-4 border-indigo-100 rounded-3xl text-lg font-black text-indigo-700 focus:outline-none focus:border-indigo-400" value=${name} onChange=${e => setName(e.target.value)} />
+                        <div class="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
+                            ${Object.keys(VOCABULARY_SETS).map(k => html`
+                                <button key=${k} onClick=${() => setTopic(k)} class=${`py-4 px-5 rounded-2xl font-black text-sm transition-all border-4 text-left flex flex-col ${topic === k ? 'bg-indigo-600 border-indigo-200 text-white shadow-lg' : 'bg-white border-slate-50 text-slate-500 hover:border-indigo-100'}`}>
+                                    <div class="flex items-center justify-between w-full">
+                                        <span>${k}</span>
+                                        ${topic === k && html`<span>✅</span>`}
+                                    </div>
+                                    <span class=${`text-[10px] uppercase tracking-widest mt-1 ${topic === k ? 'text-indigo-200' : 'text-slate-400'}`}>
+                                        ${VOCABULARY_SETS[k].length} từ vựng
+                                    </span>
+                                </button>
+                            `)}
+                        </div>
+                        <button onClick=${() => onStart(name, topic)} disabled=${!name.trim()} class="w-full py-4 md:py-5 bg-indigo-600 disabled:bg-slate-300 text-white font-black text-xl md:text-2xl rounded-[2rem] shadow-xl hover:scale-105 active:scale-95 transition-all">Bắt đầu học nào! 🚀</button>
+                    </div>
+                </div>
+            `;
+        };
+
+        const GameView = ({ playerName, word, index, total, score, topicName, onCorrect, onIncorrect, onNext, onChangeTopic }) => {
+            const [scrambled, setScrambled] = useState([]);
+            const [answer, setAnswer] = useState([]);
+            const [status, setStatus] = useState('playing');
+
+            const clean = useMemo(() => stripEmoji(word.english), [word.english]);
+            const emoji = useMemo(() => getEmoji(word.english), [word.english]);
+
+            useEffect(() => {
+                setStatus('playing'); setScrambled(scramblePhrase(clean)); setAnswer([]);
+                speak(clean);
+            }, [word]);
+
+            const handleLetter = (l) => {
+                if (status !== 'playing') return;
+                const newAns = [...answer, l]; setAnswer(newAns);
+                setScrambled(scrambled.map(g => g.map(x => x.id === l.id ? { ...x, used: true } : x)));
+                if (newAns.length === clean.replace(/\s/g, '').length) check(newAns);
+            };
+
+            const undoLetter = (l) => {
+                if (status !== 'playing') return;
+                setAnswer(answer.filter(x => x.id !== l.id));
+                setScrambled(scrambled.map(g => g.map(x => x.id === l.id ? { ...x, used: false } : x)));
+            };
+
+            const check = (ans) => {
+                setStatus('checking');
+                if (ans.map(x => x.char).join('').toLowerCase() === clean.replace(/\s/g, '').toLowerCase()) {
+                    setStatus('correct'); onCorrect(10);
+                    setTimeout(() => { speak(clean); setTimeout(onNext, 1200); }, 400);
+                } else {
+                    setStatus('wrong'); onIncorrect(word);
+                    setTimeout(() => { setAnswer([]); setScrambled(s => s.map(g => g.map(x => ({ ...x, used: false })))); setStatus('playing'); }, 1000);
+                }
+            };
+
+            return html`
+                <div class="p-6 md:p-8 flex flex-col h-full kids-card relative select-none">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Bé: ${playerName}</p>
+                            <p class="text-xl font-black text-indigo-600">Điểm: ${score}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Tiến trình</p>
+                            <p class="text-sm font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full">${index + 1} / ${total}</p>
+                        </div>
+                    </div>
+                    <div class="progress-container mb-8">
+                        <div class="progress-bar" style=${{ width: `${((index + 1) / total) * 100}%` }}></div>
+                    </div>
+                    <div class="flex-grow flex flex-col items-center justify-center space-y-6">
+                        <div class="text-center">
+                            <p class="text-slate-400 text-xs font-black uppercase mb-1 tracking-widest">Từ này nghĩa là:</p>
+                            <h2 class="text-3xl md:text-5xl font-black text-slate-800 flex items-center justify-center gap-3">
+                                ${word.vietnamese} <span class="text-5xl animate-float">${emoji}</span>
+                            </h2>
+                        </div>
+                        <div class=${`w-full max-w-lg min-h-[110px] p-6 bg-indigo-50/40 rounded-[2.5rem] border-4 border-dashed flex flex-wrap items-center justify-center gap-2 transition-all ${status === 'wrong' ? 'border-pink-400 bg-pink-50/50 shake' : (status === 'correct' ? 'border-emerald-400 bg-emerald-50/50' : 'border-indigo-100')}`}>
+                            ${status === 'correct' ? clean.split('').map((c, i) => c === ' ' ? html`<div key=${i} class="w-4" />` : html`<span key=${i} class="text-4xl md:text-5xl font-black text-slate-800 pop">${c}</span>`)
+                            : answer.length === 0 ? html`<span class="text-indigo-200 font-black italic opacity-60">Bé chạm chữ ở dưới nhé!</span>`
+                            : answer.map(l => html`<button key=${l.id} onClick=${() => undoLetter(l)} class="text-4xl md:text-5xl font-black text-indigo-700 hover:text-pink-500 transition-all active:scale-90">${l.char}</button>`)}
+                        </div>
+                        ${status === 'playing' && html`
+                            <div class="flex flex-col items-center gap-3 w-full py-4">
+                                ${scrambled.map((g, gi) => html`
+                                    <div key=${gi} class="flex flex-wrap justify-center gap-3">
+                                        ${g.map(l => html`<button key=${l.id} onClick=${() => handleLetter(l)} disabled=${l.used} class="letter-btn w-14 h-14 md:w-16 md:h-16 bg-white border-2 border-indigo-100 rounded-2xl text-2xl md:text-3xl font-black text-indigo-600 disabled:opacity-20 shadow-sm">${l.char}</button>`)}
+                                    </div>
+                                `)}
+                            </div>
+                        `}
+                        <div class="flex flex-wrap justify-center gap-3 pt-4">
+                            <button onClick=${() => speak(clean)} class="px-8 py-3 bg-indigo-100 text-indigo-600 font-black rounded-2xl hover:bg-indigo-200 transition-all shadow-sm">🔊 Nghe lại</button>
+                            <button onClick=${onChangeTopic} class="px-8 py-3 bg-amber-50 text-amber-700 font-black rounded-2xl hover:bg-amber-100 transition-all shadow-sm">📂 Đổi đề</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const ResultScreen = ({ stats, topicName, onRestart, onRetry }) => {
+            const acc = Math.round((stats.correctCount / (stats.correctCount + stats.incorrectCount)) * 100) || 0;
+            return html`
+                <div class="p-10 text-center flex flex-col items-center justify-center h-full pop kids-card">
+                    <div class="text-7xl mb-6 animate-float">🏆</div>
+                    <h2 class="text-4xl font-black text-indigo-600 mb-2">Giỏi Quá!</h2>
+                    <p class="text-slate-500 font-bold mb-8 italic">Bé đã hoàn thành ${topicName}!</p>
+                    <div class="grid grid-cols-2 gap-4 w-full max-w-sm mb-8">
+                        <div class="p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-100 shadow-sm"><p class="text-xs font-black text-indigo-400 mb-1">ĐIỂM</p><p class="text-4xl font-black text-indigo-600">${stats.score}</p></div>
+                        <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100 shadow-sm"><p class="text-xs font-black text-emerald-400 mb-1">ĐÚNG</p><p class="text-4xl font-black text-emerald-600">${acc}%</p></div>
+                    </div>
+                    <div class="flex flex-col gap-3 w-full max-w-xs">
+                        <button onClick=${onRestart} class="py-5 bg-indigo-600 text-white font-black text-xl rounded-[2rem] shadow-xl hover:bg-indigo-700 transition-all hover:scale-105">Học bài mới 🚀</button>
+                        ${stats.incorrectWords.length > 0 && html`<button onClick=${onRetry} class="py-4 bg-white border-4 border-indigo-100 text-indigo-600 font-black rounded-3xl hover:bg-indigo-50 transition-all">Luyện lại từ chưa thuộc (${stats.incorrectWords.length})</button>`}
+                    </div>
+                </div>
+            `;
+        };
+
+        const App = () => {
+            const [state, setState] = useState('START');
+            const [name, setName] = useState('Bé yêu');
+            const [words, setWords] = useState([]);
+            const [topic, setTopic] = useState("");
+            const [idx, setIdx] = useState(0);
+            const [stats, setStats] = useState({ score: 0, correctCount: 0, incorrectCount: 0, incorrectWords: [] });
+
+            const handleStart = (n, t) => {
+                setName(n || "Bé yêu"); setTopic(t); setWords(shuffleArray(VOCABULARY_SETS[t]));
+                setIdx(0); setStats({ score: 0, correctCount: 0, incorrectCount: 0, incorrectWords: [] }); setState('PLAYING');
+            };
+
+            return html`
+                <div class="w-full h-full">
+                    ${state === 'START' && html`<${StartScreen} onStart=${handleStart} initialName=${name} />`}
+                    ${state === 'PLAYING' && words.length > 0 && html`
+                        <${GameView} playerName=${name} word=${words[idx]} index=${idx} total=${words.length} score=${stats.score} topicName=${topic}
+                            onCorrect=${(p) => setStats(s => ({ ...s, score: s.score + p, correctCount: s.correctCount + 1 }))}
+                            onIncorrect=${(w) => setStats(s => ({ ...s, incorrectCount: s.incorrectCount + 1, incorrectWords: s.incorrectWords.some(x => x.english === w.english) ? s.incorrectWords : [...s.incorrectWords, w] }))}
+                            onNext=${() => idx < words.length - 1 ? setIdx(idx + 1) : setState('FINISHED')}
+                            onChangeTopic=${() => setState('START')} />
+                    `}
+                    ${state === 'FINISHED' && html`<${ResultScreen} stats=${stats} topicName=${topic} onRestart=${() => setState('START')} onRetry=${() => { setWords(shuffleArray(stats.incorrectWords)); setIdx(0); setStats(s => ({ ...s, incorrectWords: [] })); setState('PLAYING'); }} />`}
+                </div>
+            `;
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+    </script>
 </body>
 </html>
