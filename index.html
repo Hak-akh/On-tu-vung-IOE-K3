@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sắp Xếp Từ Vựng IOE K3 - Bé Học Tiếng Anh</title>
+    <title>IOE K3 - Sắp Xếp Từ Vựng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,11 @@
             font-family: 'Nunito', sans-serif;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
             min-height: 100vh;
-            overflow-x: hidden;
             margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
         }
         .kids-card {
             border-radius: 2.5rem;
@@ -27,7 +30,7 @@
         }
         @keyframes float {
             0%, 100% { transform: translateY(0) rotate(0); }
-            50% { transform: translateY(-15px) rotate(2deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
         }
         .letter-btn {
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -92,8 +95,8 @@
 }
 </script>
 </head>
-<body class="flex items-center justify-center p-4">
-    <div id="root" class="w-full max-w-2xl min-h-[650px]"></div>
+<body>
+    <div id="root" class="w-full max-w-2xl px-4"></div>
 
     <script type="module">
         import React, { useState, useEffect, useMemo, useCallback, useRef } from 'https://esm.sh/react@19.0.0';
@@ -103,7 +106,7 @@
 
         const html = htm.bind(React.createElement);
 
-        // --- VOCABULARY DATA (Dựa trên yêu cầu cũ) ---
+        // --- DỮ LIỆU TỪ VỰNG ---
         const VOCABULARY_SETS = {
             "Đề 1: Trường học": [
                 { english: "book 📖", vietnamese: "quyển sách" }, { english: "chair 🪑", vietnamese: "cái ghế" }, { english: "eraser 🧼", vietnamese: "cục tẩy" },
@@ -150,31 +153,14 @@
                 { english: "bike 🚲", vietnamese: "xe đạp" }, { english: "boat 🚤", vietnamese: "thuyền" }, { english: "bus 🚌", vietnamese: "xe buýt" },
                 { english: "helicopter 🚁", vietnamese: "trực thăng" }, { english: "truck 🚚", vietnamese: "xe tải" }, { english: "motorbike 🏍️", vietnamese: "xe máy" },
                 { english: "plane ✈️", vietnamese: "máy bay" }, { english: "dance 💃", vietnamese: "nhảy" }, { english: "drive 🚗", vietnamese: "lái xe" },
-                { english: "fly 🕊️", vietnamese: "bay" }, { english: "listen 🎧", vietnamese: "nghe" }, { english: "listen to music 🎶", vietnamese: "nghe nhạc" },
-                { english: "match 🔥", vietnamese: "diêm" }, { english: "play badminton 🏸", vietnamese: "chơi cầu lông" }, { english: "play basketball 🏀", vietnamese: "chơi bóng rổ" },
-                { english: "play football ⚽", vietnamese: "chơi bóng đá" }, { english: "play tennis 🎾", vietnamese: "chơi tennis" }, { english: "play the guitar 🎸", vietnamese: "chơi guitar" },
-                { english: "play the piano 🎹", vietnamese: "chơi piano" }, { english: "point 👉", vietnamese: "chỉ" }, { english: "read a book 📖", vietnamese: "đọc sách" },
-                { english: "ride 🏇", vietnamese: "cưỡi" }, { english: "watch TV 📺", vietnamese: "xem TV" }, { english: "ride a bike 🚲", vietnamese: "đi xe đạp" },
-                { english: "say 💬", vietnamese: "nói" }, { english: "sing 🎤", vietnamese: "hát" }, { english: "sit down 🪑", vietnamese: "ngồi xuống" },
-                { english: "stand up 🧍", vietnamese: "đứng lên" }, { english: "swim 🏊", vietnamese: "bơi" }, { english: "talk 🗣️", vietnamese: "nói chuyện" },
-                { english: "walk 🚶", vietnamese: "đi bộ" }
-            ],
-            "Đề 6: Đồ gia dụng & Thực phẩm": [
-                { english: "armchair 🛋️", vietnamese: "ghế bành" }, { english: "bath 🛀", vietnamese: "bồn tắm" }, { english: "bathroom 🚽", vietnamese: "phòng tắm" },
-                { english: "bed 🛏️", vietnamese: "giường" }, { english: "bedroom 🛌", vietnamese: "phòng ngủ" }, { english: "wardrobe 🚪", vietnamese: "tủ quần áo" },
-                { english: "clock ⏰", vietnamese: "đồng hồ" }, { english: "dining room 🍽️", vietnamese: "phòng ăn" }, { english: "kitchen 🍳", vietnamese: "nhà bếp" },
-                { english: "lamp 💡", vietnamese: "đèn" }, { english: "living room 🛋️", vietnamese: "phòng khách" }, { english: "mat 🧘", vietnamese: "thảm" },
-                { english: "mirror 🪞", vietnamese: "gương" }, { english: "phone 📱", vietnamese: "điện thoại" }, { english: "picture 🖼️", vietnamese: "bức tranh" },
-                { english: "room 🏠", vietnamese: "phòng" }, { english: "sofa 🛋️", vietnamese: "ghế sofa" }, { english: "apple 🍎", vietnamese: "táo" },
-                { english: "banana 🍌", vietnamese: "chuối" }, { english: "bread 🍞", vietnamese: "bánh mì" }, { english: "grape 🍇", vietnamese: "nho" },
-                { english: "watermelon 🍉", vietnamese: "dưa hấu" }, { english: "hamburger 🍔", vietnamese: "bánh hamburger" }, { english: "cake 🎂", vietnamese: "bánh ngọt" },
-                { english: "cookie 🍪", vietnamese: "bánh quy" }, { english: "chocolate 🍫", vietnamese: "sô cô la" }, { english: "ice cream 🍦", vietnamese: "kem" },
-                { english: "orange 🍊", vietnamese: "cam" }, { english: "pineapple 🍍", vietnamese: "dứa" }, { english: "potato 🥔", vietnamese: "khoai tây" },
-                { english: "strawberry 🍓", vietnamese: "dâu tây" }, { english: "tomato 🍅", vietnamese: "cà chua" }, { english: "flower 🌸", vietnamese: "hoa" }
+                { english: "fly 🕊️", vietnamese: "bay" }, { english: "listen 🎧", vietnamese: "nghe" }, { english: "match 🔥", vietnamese: "diêm" },
+                { english: "play football ⚽", vietnamese: "chơi bóng đá" }, { english: "play the guitar 🎸", vietnamese: "chơi guitar" },
+                { english: "read a book 📖", vietnamese: "đọc sách" }, { english: "ride 🏇", vietnamese: "cưỡi" }, { english: "watch TV 📺", vietnamese: "xem TV" },
+                { english: "sing 🎤", vietnamese: "hát" }, { english: "swim 🏊", vietnamese: "bơi" }, { english: "walk 🚶", vietnamese: "đi bộ" }
             ]
         };
 
-        // --- UTILS ---
+        // --- TIỆN ÍCH ---
         const EMOJI_REGEX = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{3000}-\u{303F}]/gu;
         const stripEmoji = (str) => str.replace(EMOJI_REGEX, '').trim();
         const getEmoji = (str) => (str.match(EMOJI_REGEX) || []).join('');
@@ -197,7 +183,7 @@
             }).filter(w => w.length > 0);
         };
 
-        // --- SPEECH ---
+        // --- PHÁT ÂM ---
         const speak = (text, rate = 1.0) => {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
@@ -206,47 +192,76 @@
             window.speechSynthesis.speak(u);
         };
 
-        // --- APP COMPONENTS ---
+        const spellAndSpeak = (word, setSpellingIdx, onEnd) => {
+            if (!('speechSynthesis' in window)) return onEnd();
+            window.speechSynthesis.cancel();
+            const letters = word.replace(/[\s-]/g, '').split('');
+            const letterIndices = [];
+            word.split('').forEach((c, i) => { if (c.trim() !== '' && c !== '-') letterIndices.push(i); });
+            
+            let idx = 0;
+            const next = () => {
+                if (idx < letters.length) {
+                    setSpellingIdx(letterIndices[idx]);
+                    const u = new SpeechSynthesisUtterance(letters[idx]);
+                    u.lang = 'en-US'; u.rate = 2.5;
+                    u.onend = () => { idx++; setTimeout(next, 50); };
+                    u.onerror = () => { idx++; next(); }; // Bỏ qua nếu lỗi
+                    window.speechSynthesis.speak(u);
+                } else {
+                    setSpellingIdx(null);
+                    const f = new SpeechSynthesisUtterance(word);
+                    f.lang = 'en-US'; f.rate = 0.9;
+                    f.onend = onEnd;
+                    f.onerror = onEnd;
+                    window.speechSynthesis.speak(f);
+                }
+            };
+            next();
+        };
+
+        // --- GIAO DIỆN ---
         const StartScreen = ({ onStart, initialName }) => {
             const [name, setName] = useState(initialName);
             const [topic, setTopic] = useState(Object.keys(VOCABULARY_SETS)[0]);
             
             return html`
                 <div class="p-8 md:p-10 flex flex-col items-center text-center justify-center h-full pop custom-scrollbar overflow-y-auto kids-card">
-                    <div class="w-24 h-24 md:w-32 md:h-32 bg-indigo-100 rounded-[2.5rem] flex items-center justify-center text-5xl md:text-7xl mb-6 animate-float shadow-inner">🧸</div>
-                    <h1 class="text-3xl md:text-4xl font-black text-indigo-600 mb-2 drop-shadow-sm">Bé Học Tiếng Anh</h1>
-                    <p class="text-slate-500 font-bold text-xs md:text-sm mb-6 max-w-md uppercase tracking-wider">Chào mừng bé đến với trò chơi ô chữ!</p>
+                    <div class="w-24 h-24 md:w-32 md:h-32 bg-indigo-100 rounded-[2.5rem] flex items-center justify-center text-5xl md:text-7xl mb-6 animate-float">🎒</div>
+                    <h1 class="text-3xl md:text-4xl font-black text-indigo-600 mb-2 drop-shadow-sm">IOE Tiếng Anh K3</h1>
+                    <p class="text-slate-500 font-bold text-xs md:text-sm mb-6 max-w-md uppercase tracking-wider">Chọn bộ đề và bắt đầu nhé!</p>
                     <div class="w-full max-w-sm space-y-6">
-                        <input type="text" placeholder="Tên của bé là gì nhỉ?" class="w-full px-6 py-3 bg-indigo-50/50 border-4 border-indigo-100 rounded-3xl text-lg font-black text-indigo-700 focus:outline-none focus:border-indigo-400" value=${name} onChange=${e => setName(e.target.value)} />
+                        <input type="text" placeholder="Tên của bé là gì?" class="w-full px-6 py-3 bg-indigo-50/50 border-4 border-indigo-100 rounded-3xl text-lg font-black text-indigo-700 focus:outline-none focus:border-indigo-400" value=${name} onChange=${e => setName(e.target.value)} />
                         <div class="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
                             ${Object.keys(VOCABULARY_SETS).map(k => html`
                                 <button key=${k} onClick=${() => setTopic(k)} class=${`py-4 px-5 rounded-2xl font-black text-sm transition-all border-4 text-left flex flex-col ${topic === k ? 'bg-indigo-600 border-indigo-200 text-white shadow-lg' : 'bg-white border-slate-50 text-slate-500 hover:border-indigo-100'}`}>
-                                    <div class="flex items-center justify-between w-full">
-                                        <span>${k}</span>
-                                        ${topic === k && html`<span>✅</span>`}
-                                    </div>
-                                    <span class=${`text-[10px] uppercase tracking-widest mt-1 ${topic === k ? 'text-indigo-200' : 'text-slate-400'}`}>
-                                        ${VOCABULARY_SETS[k].length} từ vựng
-                                    </span>
+                                    <span>${k}</span>
+                                    <span class="text-[10px] opacity-70 uppercase tracking-widest mt-1">${VOCABULARY_SETS[k].length} từ vựng</span>
                                 </button>
                             `)}
                         </div>
-                        <button onClick=${() => onStart(name, topic)} disabled=${!name.trim()} class="w-full py-4 md:py-5 bg-indigo-600 disabled:bg-slate-300 text-white font-black text-xl md:text-2xl rounded-[2rem] shadow-xl hover:scale-105 active:scale-95 transition-all">Bắt đầu học nào! 🚀</button>
+                        <button onClick=${() => onStart(name, topic)} disabled=${!name.trim()} class="w-full py-4 md:py-5 bg-indigo-600 disabled:bg-slate-300 text-white font-black text-xl md:text-2xl rounded-[2rem] shadow-xl hover:scale-105 active:scale-95 transition-all">Bắt đầu! 🚀</button>
                     </div>
                 </div>
             `;
         };
 
-        const GameView = ({ playerName, word, index, total, score, topicName, onCorrect, onIncorrect, onNext, onChangeTopic }) => {
+        const GameView = ({ playerName, word, index, total, score, onCorrect, onIncorrect, onNext, onChangeTopic }) => {
             const [scrambled, setScrambled] = useState([]);
             const [answer, setAnswer] = useState([]);
             const [status, setStatus] = useState('playing');
+            const [spellingIdx, setSpellingIdx] = useState(null);
+            const transitionRef = useRef(null);
 
             const clean = useMemo(() => stripEmoji(word.english), [word.english]);
             const emoji = useMemo(() => getEmoji(word.english), [word.english]);
 
             useEffect(() => {
-                setStatus('playing'); setScrambled(scramblePhrase(clean)); setAnswer([]);
+                setStatus('playing'); 
+                setScrambled(scramblePhrase(clean)); 
+                setAnswer([]); 
+                setSpellingIdx(null);
+                if (transitionRef.current) clearTimeout(transitionRef.current);
                 speak(clean);
             }, [word]);
 
@@ -266,18 +281,35 @@
             const check = (ans) => {
                 setStatus('checking');
                 if (ans.map(x => x.char).join('').toLowerCase() === clean.replace(/\s/g, '').toLowerCase()) {
-                    setStatus('correct'); onCorrect(10);
-                    setTimeout(() => { speak(clean); setTimeout(onNext, 1200); }, 400);
+                    setStatus('correct'); 
+                    onCorrect(10);
+                    
+                    // Safety Timeout: Nếu sau 3.5 giây mà không tự chuyển, hãy ép buộc chuyển (phòng trường hợp TTS bị kẹt)
+                    transitionRef.current = setTimeout(() => {
+                        if (status !== 'playing') onNext();
+                    }, 4000);
+
+                    setTimeout(() => { 
+                        spellAndSpeak(clean, setSpellingIdx, () => {
+                            clearTimeout(transitionRef.current);
+                            onNext();
+                        }); 
+                    }, 300);
                 } else {
-                    setStatus('wrong'); onIncorrect(word);
-                    setTimeout(() => { setAnswer([]); setScrambled(s => s.map(g => g.map(x => ({ ...x, used: false })))); setStatus('playing'); }, 1000);
+                    setStatus('wrong'); 
+                    onIncorrect(word);
+                    setTimeout(() => { 
+                        setAnswer([]); 
+                        setScrambled(s => s.map(g => g.map(x => ({ ...x, used: false })))); 
+                        setStatus('playing'); 
+                    }, 1000);
                 }
             };
 
             return html`
                 <div class="p-6 md:p-8 flex flex-col h-full kids-card relative select-none">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-left">
                             <p class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Bé: ${playerName}</p>
                             <p class="text-xl font-black text-indigo-600">Điểm: ${score}</p>
                         </div>
@@ -286,19 +318,19 @@
                             <p class="text-sm font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full">${index + 1} / ${total}</p>
                         </div>
                     </div>
-                    <div class="progress-container mb-8">
+                    <div class="progress-container mb-6">
                         <div class="progress-bar" style=${{ width: `${((index + 1) / total) * 100}%` }}></div>
                     </div>
                     <div class="flex-grow flex flex-col items-center justify-center space-y-6">
                         <div class="text-center">
-                            <p class="text-slate-400 text-xs font-black uppercase mb-1 tracking-widest">Từ này nghĩa là:</p>
+                            <p class="text-slate-400 text-xs font-black uppercase mb-1 tracking-widest">Từ này là:</p>
                             <h2 class="text-3xl md:text-5xl font-black text-slate-800 flex items-center justify-center gap-3">
                                 ${word.vietnamese} <span class="text-5xl animate-float">${emoji}</span>
                             </h2>
                         </div>
-                        <div class=${`w-full max-w-lg min-h-[110px] p-6 bg-indigo-50/40 rounded-[2.5rem] border-4 border-dashed flex flex-wrap items-center justify-center gap-2 transition-all ${status === 'wrong' ? 'border-pink-400 bg-pink-50/50 shake' : (status === 'correct' ? 'border-emerald-400 bg-emerald-50/50' : 'border-indigo-100')}`}>
-                            ${status === 'correct' ? clean.split('').map((c, i) => c === ' ' ? html`<div key=${i} class="w-4" />` : html`<span key=${i} class="text-4xl md:text-5xl font-black text-slate-800 pop">${c}</span>`)
-                            : answer.length === 0 ? html`<span class="text-indigo-200 font-black italic opacity-60">Bé chạm chữ ở dưới nhé!</span>`
+                        <div class=${`w-full max-w-lg min-h-[100px] p-6 bg-indigo-50/40 rounded-[2rem] border-4 border-dashed flex flex-wrap items-center justify-center gap-2 transition-all ${status === 'wrong' ? 'border-pink-400 bg-pink-50/50 shake' : (status === 'correct' ? 'border-emerald-400 bg-emerald-50/50' : 'border-indigo-100')}`}>
+                            ${status === 'correct' ? clean.split('').map((c, i) => c === ' ' ? html`<div key=${i} class="w-4" />` : html`<span key=${i} class=${`text-4xl md:text-5xl font-black transition-all ${i === spellingIdx ? 'text-indigo-600 scale-125' : 'text-slate-800'}`}>${c}</span>`)
+                            : answer.length === 0 ? html`<span class="text-indigo-200 font-black italic opacity-60">Chạm chữ ở dưới ghép từ...</span>`
                             : answer.map(l => html`<button key=${l.id} onClick=${() => undoLetter(l)} class="text-4xl md:text-5xl font-black text-indigo-700 hover:text-pink-500 transition-all active:scale-90">${l.char}</button>`)}
                         </div>
                         ${status === 'playing' && html`
@@ -311,8 +343,8 @@
                             </div>
                         `}
                         <div class="flex flex-wrap justify-center gap-3 pt-4">
-                            <button onClick=${() => speak(clean)} class="px-8 py-3 bg-indigo-100 text-indigo-600 font-black rounded-2xl hover:bg-indigo-200 transition-all shadow-sm">🔊 Nghe lại</button>
-                            <button onClick=${onChangeTopic} class="px-8 py-3 bg-amber-50 text-amber-700 font-black rounded-2xl hover:bg-amber-100 transition-all shadow-sm">📂 Đổi đề</button>
+                            <button onClick=${() => speak(clean)} class="px-6 py-3 bg-indigo-100 text-indigo-600 font-black rounded-2xl hover:bg-indigo-200 shadow-sm text-sm">🔊 Nghe</button>
+                            <button onClick=${onChangeTopic} class="px-6 py-3 bg-amber-50 text-amber-700 font-black rounded-2xl hover:bg-amber-100 shadow-sm text-sm">📂 Đổi đề</button>
                         </div>
                     </div>
                 </div>
@@ -320,19 +352,18 @@
         };
 
         const ResultScreen = ({ stats, topicName, onRestart, onRetry }) => {
-            const acc = Math.round((stats.correctCount / (stats.correctCount + stats.incorrectCount)) * 100) || 0;
             return html`
                 <div class="p-10 text-center flex flex-col items-center justify-center h-full pop kids-card">
                     <div class="text-7xl mb-6 animate-float">🏆</div>
                     <h2 class="text-4xl font-black text-indigo-600 mb-2">Giỏi Quá!</h2>
-                    <p class="text-slate-500 font-bold mb-8 italic">Bé đã hoàn thành ${topicName}!</p>
+                    <p class="text-slate-500 font-bold mb-8 italic">Bé đã hoàn thành ${topicName}</p>
                     <div class="grid grid-cols-2 gap-4 w-full max-w-sm mb-8">
                         <div class="p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-100 shadow-sm"><p class="text-xs font-black text-indigo-400 mb-1">ĐIỂM</p><p class="text-4xl font-black text-indigo-600">${stats.score}</p></div>
-                        <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100 shadow-sm"><p class="text-xs font-black text-emerald-400 mb-1">ĐÚNG</p><p class="text-4xl font-black text-emerald-600">${acc}%</p></div>
+                        <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100 shadow-sm"><p class="text-xs font-black text-emerald-400 mb-1">ĐÚNG</p><p class="text-4xl font-black text-emerald-600">${Math.round((stats.correctCount / (stats.correctCount + stats.incorrectCount)) * 100) || 0}%</p></div>
                     </div>
                     <div class="flex flex-col gap-3 w-full max-w-xs">
-                        <button onClick=${onRestart} class="py-5 bg-indigo-600 text-white font-black text-xl rounded-[2rem] shadow-xl hover:bg-indigo-700 transition-all hover:scale-105">Học bài mới 🚀</button>
-                        ${stats.incorrectWords.length > 0 && html`<button onClick=${onRetry} class="py-4 bg-white border-4 border-indigo-100 text-indigo-600 font-black rounded-3xl hover:bg-indigo-50 transition-all">Luyện lại từ chưa thuộc (${stats.incorrectWords.length})</button>`}
+                        <button onClick=${onRestart} class="py-5 bg-indigo-600 text-white font-black text-xl rounded-[2rem] shadow-xl hover:scale-105 transition-all">Học bài khác 🚀</button>
+                        ${stats.incorrectWords.length > 0 && html`<button onClick=${onRetry} class="py-4 bg-white border-4 border-indigo-100 text-indigo-600 font-black rounded-3xl">Luyện lại từ sai (${stats.incorrectWords.length})</button>`}
                     </div>
                 </div>
             `;
@@ -355,7 +386,7 @@
                 <div class="w-full h-full">
                     ${state === 'START' && html`<${StartScreen} onStart=${handleStart} initialName=${name} />`}
                     ${state === 'PLAYING' && words.length > 0 && html`
-                        <${GameView} playerName=${name} word=${words[idx]} index=${idx} total=${words.length} score=${stats.score} topicName=${topic}
+                        <${GameView} playerName=${name} word=${words[idx]} index=${idx} total=${words.length} score=${stats.score}
                             onCorrect=${(p) => setStats(s => ({ ...s, score: s.score + p, correctCount: s.correctCount + 1 }))}
                             onIncorrect=${(w) => setStats(s => ({ ...s, incorrectCount: s.incorrectCount + 1, incorrectWords: s.incorrectWords.some(x => x.english === w.english) ? s.incorrectWords : [...s.incorrectWords, w] }))}
                             onNext=${() => idx < words.length - 1 ? setIdx(idx + 1) : setState('FINISHED')}
